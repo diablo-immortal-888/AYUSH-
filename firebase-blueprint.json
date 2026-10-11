@@ -1,0 +1,256 @@
+{
+  "entities": {
+    "MedicalRecord": {
+      "title": "MedicalRecord",
+      "description": "Uploaded medical document, OCR extraction, and AI clinical summary",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "User ID who owns the record",
+          "maxLength": 128
+        },
+        "familyMember": {
+          "type": "string",
+          "description": "Name or relation of family member",
+          "maxLength": 100
+        },
+        "title": {
+          "type": "string",
+          "description": "Document title",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "type": {
+          "type": "string",
+          "description": "Document category",
+          "enum": ["lab_report", "prescription", "discharge_summary", "imaging", "other"]
+        },
+        "date": {
+          "type": "string",
+          "description": "Date of medical test or prescription",
+          "maxLength": 64
+        },
+        "doctor": {
+          "type": "string",
+          "description": "Doctor name",
+          "maxLength": 150
+        },
+        "hospital": {
+          "type": "string",
+          "description": "Hospital or clinic name",
+          "maxLength": 200
+        },
+        "extractedText": {
+          "type": "string",
+          "description": "Raw extracted OCR text",
+          "maxLength": 50000
+        },
+        "summary": {
+          "type": "string",
+          "description": "Plain language AI summary in English",
+          "maxLength": 10000
+        },
+        "summaryHi": {
+          "type": "string",
+          "description": "Plain language AI summary in Hindi or regional language",
+          "maxLength": 10000
+        },
+        "abnormalFlags": {
+          "type": "array",
+          "description": "List of flagged abnormal findings"
+        },
+        "biomarkers": {
+          "type": "array",
+          "description": "Structured laboratory test results and ranges"
+        },
+        "medicines": {
+          "type": "array",
+          "description": "Prescribed medications and dosages"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp",
+          "maxLength": 64
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last update timestamp",
+          "maxLength": 64
+        }
+      },
+      "required": ["userId", "familyMember", "title", "type", "createdAt", "updatedAt"]
+    },
+    "MedicineReminder": {
+      "title": "MedicineReminder",
+      "description": "Scheduled medicine alert and tracking",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "User ID",
+          "maxLength": 128
+        },
+        "familyMember": {
+          "type": "string",
+          "description": "Family member name",
+          "maxLength": 100
+        },
+        "medicineName": {
+          "type": "string",
+          "description": "Name of medicine",
+          "minLength": 1,
+          "maxLength": 150
+        },
+        "dosage": {
+          "type": "string",
+          "description": "Dosage instructions",
+          "maxLength": 100
+        },
+        "time": {
+          "type": "string",
+          "description": "Scheduled reminder time (HH:MM)",
+          "maxLength": 32
+        },
+        "frequency": {
+          "type": "string",
+          "description": "Daily, twice daily, as needed",
+          "maxLength": 64
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether reminder is active"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp",
+          "maxLength": 64
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Update timestamp",
+          "maxLength": 64
+        }
+      },
+      "required": ["userId", "familyMember", "medicineName", "time", "active", "createdAt", "updatedAt"]
+    },
+    "FamilyMember": {
+      "title": "FamilyMember",
+      "description": "Family health profile member",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "User ID",
+          "maxLength": 128
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "relation": {
+          "type": "string",
+          "description": "Relationship (Self, Mother, Father, Child, Spouse)",
+          "maxLength": 50
+        },
+        "bloodGroup": {
+          "type": "string",
+          "description": "Blood group type",
+          "maxLength": 10
+        },
+        "dob": {
+          "type": "string",
+          "description": "Date of birth",
+          "maxLength": 32
+        },
+        "abhaId": {
+          "type": "string",
+          "description": "ABHA Number or Address",
+          "maxLength": 64
+        },
+        "allergies": {
+          "type": "array",
+          "description": "Known drug or food allergies"
+        },
+        "conditions": {
+          "type": "array",
+          "description": "Chronic health conditions"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp",
+          "maxLength": 64
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Update timestamp",
+          "maxLength": 64
+        }
+      },
+      "required": ["userId", "name", "relation", "createdAt", "updatedAt"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User preferences and active profile selection",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "User ID",
+          "maxLength": 128
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Name",
+          "maxLength": 200
+        },
+        "email": {
+          "type": "string",
+          "description": "Email",
+          "maxLength": 254
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Profile picture URL",
+          "maxLength": 1000
+        },
+        "abhaId": {
+          "type": "string",
+          "description": "ABHA ID",
+          "maxLength": 64
+        },
+        "language": {
+          "type": "string",
+          "description": "Preferred language",
+          "maxLength": 10
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Update timestamp",
+          "maxLength": 64
+        }
+      },
+      "required": ["userId", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/medical_records/{recordId}": {
+      "schema": "MedicalRecord",
+      "description": "Medical documents and clinical analysis"
+    },
+    "/medicine_reminders/{reminderId}": {
+      "schema": "MedicineReminder",
+      "description": "Scheduled medicine reminders"
+    },
+    "/family_members/{memberId}": {
+      "schema": "FamilyMember",
+      "description": "Family members under the user account"
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile and ABHA settings"
+    }
+  }
+}

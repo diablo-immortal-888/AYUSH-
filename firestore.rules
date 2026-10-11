@@ -1,0 +1,119 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidMedicalRecord(data) {
+      return data.keys().hasAll(['userId', 'familyMember', 'title', 'type', 'createdAt', 'updatedAt'])
+        && data.userId is string && data.userId == request.auth.uid
+        && data.familyMember is string && data.familyMember.size() <= 100
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 200
+        && data.type is string && (data.type == 'lab_report' || data.type == 'prescription' || data.type == 'discharge_summary' || data.type == 'imaging' || data.type == 'other')
+        && (!('date' in data) || data.date is string)
+        && (!('doctor' in data) || data.doctor is string)
+        && (!('hospital' in data) || data.hospital is string)
+        && (!('extractedText' in data) || data.extractedText is string)
+        && (!('summary' in data) || data.summary is string)
+        && (!('summaryHi' in data) || data.summaryHi is string)
+        && (!('abnormalFlags' in data) || data.abnormalFlags is list)
+        && (!('biomarkers' in data) || data.biomarkers is list)
+        && (!('medicines' in data) || data.medicines is list)
+        && data.createdAt is string && data.createdAt.size() <= 64
+        && data.updatedAt is string && data.updatedAt.size() <= 64;
+    }
+
+    function isValidMedicineReminder(data) {
+      return data.keys().hasAll(['userId', 'familyMember', 'medicineName', 'time', 'active', 'createdAt', 'updatedAt'])
+        && data.userId is string && data.userId == request.auth.uid
+        && data.familyMember is string && data.familyMember.size() <= 100
+        && data.medicineName is string && data.medicineName.size() >= 1 && data.medicineName.size() <= 150
+        && (!('dosage' in data) || data.dosage is string)
+        && data.time is string && data.time.size() <= 32
+        && (!('frequency' in data) || data.frequency is string)
+        && data.active is bool
+        && data.createdAt is string && data.createdAt.size() <= 64
+        && data.updatedAt is string && data.updatedAt.size() <= 64;
+    }
+
+    function isValidFamilyMember(data) {
+      return data.keys().hasAll(['userId', 'name', 'relation', 'createdAt', 'updatedAt'])
+        && data.userId is string && data.userId == request.auth.uid
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 100
+        && data.relation is string && data.relation.size() <= 50
+        && (!('bloodGroup' in data) || data.bloodGroup is string)
+        && (!('dob' in data) || data.dob is string)
+        && (!('abhaId' in data) || data.abhaId is string)
+        && (!('allergies' in data) || data.allergies is list)
+        && (!('conditions' in data) || data.conditions is list)
+        && data.createdAt is string && data.createdAt.size() <= 64
+        && data.updatedAt is string && data.updatedAt.size() <= 64;
+    }
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['userId', 'updatedAt'])
+        && data.userId is string && data.userId == request.auth.uid
+        && (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 200))
+        && (!('email' in data) || (data.email is string && data.email.size() <= 254))
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 1000))
+        && (!('abhaId' in data) || (data.abhaId is string && data.abhaId.size() <= 64))
+        && (!('language' in data) || (data.language is string && data.language.size() <= 10))
+        && data.updatedAt is string && data.updatedAt.size() <= 64;
+    }
+
+    // Medical Records - Private to User
+    match /medical_records/{recordId} {
+      allow get: if isSignedIn() && isValidId(recordId) && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(recordId) && incoming().userId == request.auth.uid && isValidMedicalRecord(incoming());
+      allow update: if isSignedIn() && isValidId(recordId) && existing().userId == request.auth.uid && incoming().userId == request.auth.uid && isValidMedicalRecord(incoming()) && incoming().createdAt == existing().createdAt;
+      allow delete: if isSignedIn() && isValidId(recordId) && resource.data.userId == request.auth.uid;
+    }
+
+    // Medicine Reminders
+    match /medicine_reminders/{reminderId} {
+      allow get: if isSignedIn() && isValidId(reminderId) && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(reminderId) && incoming().userId == request.auth.uid && isValidMedicineReminder(incoming());
+      allow update: if isSignedIn() && isValidId(reminderId) && existing().userId == request.auth.uid && incoming().userId == request.auth.uid && isValidMedicineReminder(incoming()) && incoming().createdAt == existing().createdAt;
+      allow delete: if isSignedIn() && isValidId(reminderId) && resource.data.userId == request.auth.uid;
+    }
+
+    // Family Profiles
+    match /family_members/{memberId} {
+      allow get: if isSignedIn() && isValidId(memberId) && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(memberId) && incoming().userId == request.auth.uid && isValidFamilyMember(incoming());
+      allow update: if isSignedIn() && isValidId(memberId) && existing().userId == request.auth.uid && incoming().userId == request.auth.uid && isValidFamilyMember(incoming()) && incoming().createdAt == existing().createdAt;
+      allow delete: if isSignedIn() && isValidId(memberId) && resource.data.userId == request.auth.uid;
+    }
+
+    // User Profile
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(userId) && userId == request.auth.uid && incoming().userId == request.auth.uid && isValidUserProfile(incoming());
+      allow update: if isSignedIn() && isValidId(userId) && userId == request.auth.uid && existing().userId == request.auth.uid && incoming().userId == request.auth.uid && isValidUserProfile(incoming());
+      allow delete: if isSignedIn() && isValidId(userId) && userId == request.auth.uid;
+    }
+  }
+}
